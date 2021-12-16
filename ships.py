@@ -14,13 +14,10 @@ class Ships:
 
     def generate_ships(self):
         try:
-            self.generate_ship(3)
-            self.generate_ship(2)
-            self.generate_ship(2)
-            self.generate_ship(1)
-            self.generate_ship(1)
-            self.generate_ship(1)
-            self.generate_ship(1)
+            ships_list = ((3, 1), (2, 2), (1, 4))
+            for pair in ships_list:
+                for _ in range(pair[1]):
+                    self.generate_ship(pair[0])
         except TimeoutError:
             # периодически можно поймать
             self.ships.clear()
