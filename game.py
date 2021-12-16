@@ -46,7 +46,7 @@ def shoot(enemy, location):
     return all_ships_destroyed, switch_player, move_result
 
 
-def alt_show(player, enemy):
+def show_desks(player, enemy):
     between = ' ' * 20
     print(f"{player.desk.caption}{between}{enemy.desk.caption}")
     print()
@@ -72,14 +72,8 @@ Intro.rules_print()
 user_name = Intro.input_user_name()
 
 # init users and desks
-bot_desk = Desk(True, "Поле противника")
-bot = Player("bot", bot_desk, True)
-user_desk = Desk(False, "Моё игровое поле")
-user = Player(user_name, user_desk, False)
-current_player = user
-current_enemy = bot
-
-# alt_show(user, bot)
+current_player = Player(user_name, False)
+current_enemy = Player("bot", True)
 
 # move logs
 moves = list()
@@ -91,8 +85,9 @@ game_over = False
 while True:
     Intro.clear_screen()
     if not current_player.is_bot:
-        user_desk.show()
-        bot_desk.show()
+        show_desks(current_player, current_enemy)
+    else:
+        show_desks(current_enemy, current_player)
     # print game log
     for move_record in moves:
         print(move_record)
