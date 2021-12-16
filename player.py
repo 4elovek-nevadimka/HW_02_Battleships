@@ -1,8 +1,9 @@
 class Player:
 
-    def __init__(self, name, desk):
+    def __init__(self, name, desk, bot):
         self._name = name
         self._desk = desk
+        self._bot = bot
 
     def __eq__(self, other):
         return self.name == other.name
@@ -14,3 +15,7 @@ class Player:
     @property
     def desk(self):
         return self._desk
+
+    @property
+    def is_bot(self):
+        return self._bot

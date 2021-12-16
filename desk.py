@@ -1,3 +1,4 @@
+from random import randint
 from point import Point
 from ship import Ship
 
@@ -39,9 +40,21 @@ class Desk:
         print(f"    | {' | '.join(map(str, list(range(1, self.FIELD_SIZE + 1))))} |")
         print(f"  ---{'----' * self.FIELD_SIZE}")
         for i in range(self.FIELD_SIZE):
-            map_value = map(lambda x: x.state, self.points[(i * self.FIELD_SIZE): (i + 1) * self.FIELD_SIZE])
+            map_value = map(lambda x: x.state.value, self.points[(i * self.FIELD_SIZE): (i + 1) * self.FIELD_SIZE])
             row_str = f"  {i + 1} | {' | '.join(map_value)} | "
             print(row_str)
             if i < self.FIELD_SIZE - 1:
                 print(f"  ---{'----' * self.FIELD_SIZE}")
         print()
+
+    def is_all_ships_destroyed(self):
+        return all([s.destroyed for s in self.ships])
+
+    def get_random_point(self):
+        return self.get_point(self.get_random_coordinates())
+
+    def get_random_coordinates(self):
+        return randint(1, self.FIELD_SIZE), randint(1, self.FIELD_SIZE)
+
+    def get_point(self, coordinates):
+        return self.points[(coordinates[0] - 1) * self.FIELD_SIZE + coordinates[1] - 1]

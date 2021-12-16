@@ -1,11 +1,15 @@
 from desk import Desk
 from intro import Intro
 from player import Player
+from point_type import PointType
 
 
 def make_a_move(player):
-    row = input_data(f"Игрок {player}, сделайте ход. Укажите строку: ")
-    col = input_data(f"Теперь укажите столбец: ")
+    if player.is_bot:
+        return player.desk.get_random_coordinates()
+    else:
+        row = input_data(f"Игрок {player.name}, сделайте ход. Укажите строку: ")
+        col = input_data(f"Теперь укажите столбец: ")
     return row, col
 
 
@@ -21,6 +25,27 @@ def input_data(message):
             print(f"Ошибка! Укажите число от 1 до {Desk.FIELD_SIZE}.")
 
 
+def shoot(enemy, location):
+    move_result = ""
+    switch_player = False
+    all_ships_destroyed = False
+    point = enemy.desk.get_point(location)
+    if point.state == PointType.EMPTY:
+        point.change_state(PointType.MISS)
+        move_result = "Увы, промах!"
+        switch_player = True
+    elif point.state == PointType.SHIP:
+        point.change_state(PointType.SHOT)
+        if point.ship.destroyed:
+            move_result = "Ура! Корабль уничтожен!"
+            all_ships_destroyed = enemy.desk.is_all_ships_destroyed()
+        else:
+            move_result = "Попадание! Ходите ещё!"
+    elif point.state == PointType.MISS or point.state == PointType.SHOT:
+        raise ValueError("Ошибка! Нельзя стрелять в одну и ту же клетку несколько раз!")
+    return all_ships_destroyed, switch_player, move_result
+
+
 # intro part
 Intro.clear_screen()
 Intro.welcome_print()
@@ -29,42 +54,62 @@ user_name = Intro.input_user_name()
 
 # init users and desks
 bot_desk = Desk(True)
-bot = Player("bot", bot_desk)
+bot = Player("bot", bot_desk, True)
 user_desk = Desk(False)
-user = Player(user_name, user_desk)
+user = Player(user_name, user_desk, False)
 current_player = user
+current_enemy = bot
+
+# move logs
+moves = list()
+move_number = 1
+
+game_over = False
 
 # start the game loop
 while True:
     Intro.clear_screen()
-    user_desk.show()
-    bot_desk.show()
-
-    # for move_record in moves:
-    #     print(move_record)
-    # if win_flag:
-    #     print(f"\nИгра окончена. Победил игрок '{current_player}'")
-    #     break
-    # if draw_flag:
-    #     print(f"\nИгра окончена. Ничья!")
-    #     break
-
+    if not current_player.is_bot:
+        user_desk.show()
+        bot_desk.show()
+    # print game log
+    for move_record in moves:
+        print(move_record)
+    # exit game condition
+    if game_over:
+        print(f"\nИгра окончена. Победил игрок '{current_player.name}'")
+        break
+    # move loop
     while True:
         coordinates = make_a_move(current_player)
-        # current_player.desk
-    #     if template_matrix[move[0]][move[1]] == '':
-    #         moves.append(f"Ход номер {move_number}: игрок {current_player} походил {move[0]} : {move[1]}")
-    #         template_matrix[move[0]][move[1]] = current_player
-    #         if move_number > 4:
-    #             matrix = [x[1:4] for x in template_matrix[1:4]]
-    #             if calculate(move[0] - 1, move[1] - 1, matrix, current_player):
-    #                 win_flag = True
-    #                 break
-    #         if move_number == 9:
-    #             draw_flag = True
-    #             break
-    #         current_player = switch_player(current_player)
-    #         move_number += 1
-    #         break
-    #     else:
-    #         print("В указанном поле уже есть значение! Попробуйте ещё раз :)")
+        try:
+            shoot_result = shoot(current_enemy, coordinates)
+            moves.append(
+                f"Ход номер {move_number}: игрок {current_player.name} походил {coordinates[0]} : {coordinates[1]}")
+            moves.append(shoot_result[2])
+            if shoot_result[0]:
+                game_over = True
+                break
+            if shoot_result[1]:
+                current_player, current_enemy = current_enemy, current_player
+            move_number += 1
+            break
+
+
+            # point = current_enemy.desk.get_point(coordinates)
+            # if point.state == PointType.EMPTY:
+            #     point.change_state(PointType.MISS)
+            #     moves.append("Увы, промах!")
+            #     # switch player
+            #     current_player, current_enemy = current_enemy, current_player
+            # elif point.state == PointType.SHIP:
+            #     point.change_state(PointType.SHOT)
+            #     if point.ship.destroyed:
+            #         moves.append("Ура! Корабль уничтожен!")
+            #         # desk check shiips
+            #     else:
+            #         moves.append("Попадание! Ходите ещё!")
+            # elif point.state == PointType.MISS or point.state == PointType.SHOT:
+            #     raise ValueError("Ошибка! Нельзя стрелять в одну и ту же клетку несколько раз!")
+        except ValueError:
+            print("Попробуйте ещё раз :)")
