@@ -6,13 +6,14 @@ from ship import Ship
 class Desk:
     FIELD_SIZE = 6
 
-    def __init__(self, ai_flag):
+    def __init__(self, ai_flag, name):
         self.points = []
         for i in range(self.FIELD_SIZE):
             for j in range(self.FIELD_SIZE):
                 self.points.append(Point(i + 1, j + 1))
         self.ships = []
         self.generate_ships(ai_flag)
+        self.name = name
 
     def generate_ships(self, ai_flag):
         if ai_flag:
@@ -37,14 +38,17 @@ class Desk:
         self.ships.append(ship)
 
     def show(self):
-        print(f"    | {' | '.join(map(str, list(range(1, self.FIELD_SIZE + 1))))} |")
-        print(f"  ---{'----' * self.FIELD_SIZE}")
-        for i in range(self.FIELD_SIZE):
-            map_value = map(lambda x: x.state.value, self.points[(i * self.FIELD_SIZE): (i + 1) * self.FIELD_SIZE])
-            row_str = f"  {i + 1} | {' | '.join(map_value)} | "
-            print(row_str)
-            if i < self.FIELD_SIZE - 1:
-                print(f"  ---{'----' * self.FIELD_SIZE}")
+        print(f"{self.caption}")
+        print()
+        print(f"    | {' | '.join(map(str, list(range(1, Desk.FIELD_SIZE + 1))))} |")
+        hor_sep_line = f"  ---{'----' * Desk.FIELD_SIZE}"
+        print(f"{hor_sep_line}")
+        for i in range(Desk.FIELD_SIZE):
+            map_value = map(
+                lambda x: x.state.value, self.points[(i * Desk.FIELD_SIZE): (i + 1) * Desk.FIELD_SIZE])
+            print(f"  {i + 1} | {' | '.join(map_value)} |")
+            if i < Desk.FIELD_SIZE - 1:
+                print(f"{hor_sep_line}")
         print()
 
     def is_all_ships_destroyed(self):
@@ -58,3 +62,11 @@ class Desk:
 
     def get_point(self, coordinates):
         return self.points[(coordinates[0] - 1) * self.FIELD_SIZE + coordinates[1] - 1]
+
+    @property
+    def indent(self):
+        return 3 + Desk.FIELD_SIZE * 4 - len(self.name)
+
+    @property
+    def caption(self):
+        return f"  {' ' * (self.indent // 2)} {self.name} {' ' * (self.indent // 2)}"

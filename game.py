@@ -46,6 +46,25 @@ def shoot(enemy, location):
     return all_ships_destroyed, switch_player, move_result
 
 
+def alt_show(player, enemy):
+    between = ' ' * 20
+    print(f"{player.desk.caption}{between}{enemy.desk.caption}")
+    print()
+    table_header = f"    | {' | '.join(map(str, list(range(1, Desk.FIELD_SIZE + 1))))} |"
+    print(f"{table_header}{between}{table_header}")
+    hor_sep_line = f"  ---{'----' * Desk.FIELD_SIZE}"
+    print(f"{hor_sep_line}{between}{hor_sep_line}")
+    for i in range(Desk.FIELD_SIZE):
+        map_value = map(
+            lambda x: x.state.value, player.desk.points[(i * Desk.FIELD_SIZE): (i + 1) * Desk.FIELD_SIZE])
+        map_value2 = map(
+            lambda x: x.state.value, enemy.desk.points[(i * Desk.FIELD_SIZE): (i + 1) * Desk.FIELD_SIZE])
+        print(f"  {i + 1} | {' | '.join(map_value)} |{between}  {i + 1} | {' | '.join(map_value2)} |")
+        if i < Desk.FIELD_SIZE - 1:
+            print(f"{hor_sep_line}{between}{hor_sep_line}")
+    print()
+
+
 # intro part
 Intro.clear_screen()
 Intro.welcome_print()
@@ -53,12 +72,14 @@ Intro.rules_print()
 user_name = Intro.input_user_name()
 
 # init users and desks
-bot_desk = Desk(True)
+bot_desk = Desk(True, "Поле противника")
 bot = Player("bot", bot_desk, True)
-user_desk = Desk(False)
+user_desk = Desk(False, "Моё игровое поле")
 user = Player(user_name, user_desk, False)
 current_player = user
 current_enemy = bot
+
+# alt_show(user, bot)
 
 # move logs
 moves = list()
@@ -94,22 +115,6 @@ while True:
                 current_player, current_enemy = current_enemy, current_player
             move_number += 1
             break
-
-
-            # point = current_enemy.desk.get_point(coordinates)
-            # if point.state == PointType.EMPTY:
-            #     point.change_state(PointType.MISS)
-            #     moves.append("Увы, промах!")
-            #     # switch player
-            #     current_player, current_enemy = current_enemy, current_player
-            # elif point.state == PointType.SHIP:
-            #     point.change_state(PointType.SHOT)
-            #     if point.ship.destroyed:
-            #         moves.append("Ура! Корабль уничтожен!")
-            #         # desk check shiips
-            #     else:
-            #         moves.append("Попадание! Ходите ещё!")
-            # elif point.state == PointType.MISS or point.state == PointType.SHOT:
-            #     raise ValueError("Ошибка! Нельзя стрелять в одну и ту же клетку несколько раз!")
-        except ValueError:
+        except ValueError as ex:
+            print(str(ex))
             print("Попробуйте ещё раз :)")
