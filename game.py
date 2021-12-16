@@ -56,9 +56,15 @@ def show_desks(player, enemy):
     print(f"{hor_sep_line}{between}{hor_sep_line}")
     for i in range(Desk.FIELD_SIZE):
         map_value = map(
-            lambda x: x.state.value, player.desk.points[(i * Desk.FIELD_SIZE): (i + 1) * Desk.FIELD_SIZE])
+            lambda x: x.state.value,
+            player.desk.points[(i * Desk.FIELD_SIZE): (i + 1) * Desk.FIELD_SIZE])
         map_value2 = map(
-            lambda x: x.state.value, enemy.desk.points[(i * Desk.FIELD_SIZE): (i + 1) * Desk.FIELD_SIZE])
+            # small cheat ^) -->
+            # lambda x: "" if x.state == PointType.SHIP else x.state.value,
+            # big cheat -->
+            # lambda x: x.state.value, enemy.desk.points[(i * Desk.FIELD_SIZE): (i + 1) * Desk.FIELD_SIZE])
+            lambda x: " " if x.state == PointType.SHIP else x.state.value,
+            enemy.desk.points[(i * Desk.FIELD_SIZE): (i + 1) * Desk.FIELD_SIZE])
         print(f"  {i + 1} | {' | '.join(map_value)} |{between}  {i + 1} | {' | '.join(map_value2)} |")
         if i < Desk.FIELD_SIZE - 1:
             print(f"{hor_sep_line}{between}{hor_sep_line}")
@@ -100,9 +106,8 @@ while True:
         coordinates = make_a_move(current_player)
         try:
             shoot_result = shoot(current_enemy, coordinates)
-            moves.append(
-                f"Ход номер {move_number}: игрок {current_player.name} походил {coordinates[0]} : {coordinates[1]}")
-            moves.append(shoot_result[2])
+            moves.append(f"Ход номер {move_number}: игрок {current_player.name} "
+                         f"походил {coordinates[0]} : {coordinates[1]} --> {shoot_result[2]}")
             if shoot_result[0]:
                 game_over = True
                 break

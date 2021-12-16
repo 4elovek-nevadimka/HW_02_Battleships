@@ -13,26 +13,26 @@ class Ships:
         return all([s.destroyed for s in self.ships])
 
     def generate_ships(self):
-        self.generate_ship(3)
-        self.generate_ship(2)
-        self.generate_ship(2)
-        self.generate_ship(1)
-        self.generate_ship(1)
-        self.generate_ship(1)
-        self.generate_ship(1)
+        try:
+            self.generate_ship(3)
+            self.generate_ship(2)
+            self.generate_ship(2)
+            self.generate_ship(1)
+            self.generate_ship(1)
+            self.generate_ship(1)
+            self.generate_ship(1)
+        except TimeoutError:
+            # периодически можно поймать
+            self.ships.clear()
+            self.desk.reset_points()
+            self.generate_ships()
 
     def generate_ship(self, size):
-        points = self.generate_ship_coordinates(size, choice([True, False]))
-        if points is not None:
-            self.ships.append(Ship(points))
+        self.ships.append(Ship(self.generate_ship_coordinates(size, choice([True, False]))))
 
     def generate_ship_coordinates(self, size, hor):
         if size == 1:
-            point = self.desk.get_first_point()
-            if point is not None:
-                return [point]
-            else:
-                return None
+            return [self.desk.get_first_point()]
         else:
             points = list()
             point = None
@@ -40,11 +40,9 @@ class Ships:
             while len(points) < size:
                 counter += 1
                 if counter > 100:
-                    return None
+                    raise TimeoutError("Не удалось построить корабль!")
                 if len(points) == 0:
                     point = self.desk.get_first_point()
-                    if point is None:
-                        continue
                     points.append(point)
                 else:
                     next_point = self.desk.get_next_point(point, hor)

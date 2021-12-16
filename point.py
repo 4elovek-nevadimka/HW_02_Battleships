@@ -43,6 +43,12 @@ class Point:
         self._ship = ship
         self._free = False
 
+    def reset(self):
+        self._state = PointType.EMPTY
+        self._ship = None
+        self._free = True
+        self._neighbours.clear()
+
     # def __eq__(self, other):
     #     return self.x == other.x and self.y == other.y
     #

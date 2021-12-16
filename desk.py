@@ -22,6 +22,10 @@ class Desk:
     def caption(self):
         return f"  {' ' * (self.indent // 2)} {self.name} {' ' * (self.indent // 2)}"
 
+    def reset_points(self):
+        for p in self.points:
+            p.reset()
+
     def is_all_ships_destroyed(self):
         return self.ships.is_all_ships_destroyed()
 
@@ -42,7 +46,7 @@ class Desk:
         while True:
             counter += 1
             if counter > 100:
-                return None
+                raise TimeoutError("Не удалось найти свободной точки на поле!")
             point = self.get_random_point()
             if point.free:
                 if point.is_all_neighbours_free:
