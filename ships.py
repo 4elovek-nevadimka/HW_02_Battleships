@@ -1,4 +1,6 @@
 from random import choice
+
+from custom_exceptions.infinity_loop_exception import InfinityLoopError
 from ship import Ship
 
 
@@ -18,7 +20,7 @@ class Ships:
             for pair in ships_list:
                 for _ in range(pair[1]):
                     self.generate_ship(pair[0])
-        except TimeoutError:
+        except InfinityLoopError:
             # периодически можно поймать
             self.ships.clear()
             self.desk.reset_points()
@@ -37,7 +39,7 @@ class Ships:
             while len(points) < size:
                 counter += 1
                 if counter > 100:
-                    raise TimeoutError("Не удалось построить корабль!")
+                    raise InfinityLoopError("Не удалось построить корабль!")
                 if len(points) == 0:
                     point = self.desk.get_first_point()
                     points.append(point)

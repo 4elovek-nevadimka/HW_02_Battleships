@@ -1,4 +1,6 @@
 from random import randint
+
+from custom_exceptions.infinity_loop_exception import InfinityLoopError
 from point import Point
 from ships import Ships
 
@@ -46,7 +48,7 @@ class Desk:
         while True:
             counter += 1
             if counter > 100:
-                raise TimeoutError("Не удалось найти свободной точки на поле!")
+                raise InfinityLoopError("Не удалось найти свободной точки на поле!")
             point = self.get_random_point()
             if point.free:
                 if point.is_all_neighbours_free:

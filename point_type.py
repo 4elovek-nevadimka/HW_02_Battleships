@@ -9,4 +9,4 @@ class PointType(Enum):
     # попал
     SHOT = 'X'
     # промах
-    MISS = 'T'
+    MISS = '.'

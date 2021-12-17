@@ -1,3 +1,4 @@
+from custom_exceptions.duplication_exception import DuplicationError
 from desk import Desk
 from intro import Intro
 from player import Player
@@ -42,7 +43,7 @@ def shoot(enemy, location):
         else:
             move_result = "Попадание! Ходите ещё!"
     elif point.state == PointType.MISS or point.state == PointType.SHOT:
-        raise ValueError("Ошибка! Нельзя стрелять в одну и ту же клетку несколько раз!")
+        raise DuplicationError("Ошибка! Нельзя стрелять в одну и ту же клетку несколько раз!")
     return all_ships_destroyed, switch_player, move_result
 
 
@@ -115,6 +116,6 @@ while True:
                 current_player, current_enemy = current_enemy, current_player
             move_number += 1
             break
-        except ValueError as ex:
+        except DuplicationError as ex:
             print(str(ex))
             print("Попробуйте ещё раз :)")
