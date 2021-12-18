@@ -1,2 +1,0 @@
-class InfinityLoopError(Exception):
-    pass

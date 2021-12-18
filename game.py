@@ -1,121 +1,56 @@
-from custom_exceptions.duplication_exception import DuplicationError
-from desk import Desk
-from intro import Intro
-from player import Player
-from point_type import PointType
+from project.intro import Intro
+from project.game_log import GameLogger
+from project.players.ai_bot import AiBot
+from project.players.user import User
 
 
-def make_a_move(player):
-    if player.is_bot:
-        return player.desk.get_random_coordinates()
-    else:
-        row = input_data(f"Игрок {player.name}, сделайте ход. Укажите строку: ")
-        col = input_data(f"Теперь укажите столбец: ")
-    return row, col
-
-
-def input_data(message):
-    while True:
-        try:
-            input_value = int(input(message))
-            if input_value > Desk.FIELD_SIZE or input_value < 1:
-                print(f"Укажите число от 1 до {Desk.FIELD_SIZE}.")
-            else:
-                return input_value
-        except ValueError:
-            print(f"Ошибка! Укажите число от 1 до {Desk.FIELD_SIZE}.")
-
-
-def shoot(enemy, location):
-    move_result = ""
-    switch_player = False
-    all_ships_destroyed = False
-    point = enemy.desk.get_point(location)
-    if point.state == PointType.EMPTY:
-        point.change_state(PointType.MISS)
-        move_result = "Увы, промах!"
-        switch_player = True
-    elif point.state == PointType.SHIP:
-        point.change_state(PointType.SHOT)
-        if point.ship.destroyed:
-            move_result = "Ура! Корабль уничтожен!"
-            all_ships_destroyed = enemy.desk.is_all_ships_destroyed()
-        else:
-            move_result = "Попадание! Ходите ещё!"
-    elif point.state == PointType.MISS or point.state == PointType.SHOT:
-        raise DuplicationError("Ошибка! Нельзя стрелять в одну и ту же клетку несколько раз!")
-    return all_ships_destroyed, switch_player, move_result
-
-
-def show_desks(player, enemy):
-    between = ' ' * 20
-    print(f"{player.desk.caption}{between}{enemy.desk.caption}")
-    print()
-    table_header = f"    | {' | '.join(map(str, list(range(1, Desk.FIELD_SIZE + 1))))} |"
-    print(f"{table_header}{between}{table_header}")
-    hor_sep_line = f"  ---{'----' * Desk.FIELD_SIZE}"
-    print(f"{hor_sep_line}{between}{hor_sep_line}")
-    for i in range(Desk.FIELD_SIZE):
-        map_value = map(
-            lambda x: x.state.value,
-            player.desk.points[(i * Desk.FIELD_SIZE): (i + 1) * Desk.FIELD_SIZE])
-        map_value2 = map(
-            # small cheat ^) -->
-            # lambda x: "" if x.state == PointType.SHIP else x.state.value,
-            # big cheat -->
-            # lambda x: x.state.value, enemy.desk.points[(i * Desk.FIELD_SIZE): (i + 1) * Desk.FIELD_SIZE])
-            lambda x: " " if x.state == PointType.SHIP else x.state.value,
-            enemy.desk.points[(i * Desk.FIELD_SIZE): (i + 1) * Desk.FIELD_SIZE])
-        print(f"  {i + 1} | {' | '.join(map_value)} |{between}  {i + 1} | {' | '.join(map_value2)} |")
-        if i < Desk.FIELD_SIZE - 1:
-            print(f"{hor_sep_line}{between}{hor_sep_line}")
-    print()
-
-
-# intro part
-Intro.clear_screen()
-Intro.welcome_print()
-Intro.rules_print()
-user_name = Intro.input_user_name()
-
-# init users and desks
-current_player = Player(user_name, False)
-current_enemy = Player("bot", True)
-
-# move logs
-moves = list()
-move_number = 1
-
-game_over = False
-
-# start the game loop
-while True:
+def start():
     Intro.clear_screen()
-    if not current_player.is_bot:
-        show_desks(current_player, current_enemy)
-    else:
-        show_desks(current_enemy, current_player)
-    # print game log
-    for move_record in moves:
-        print(move_record)
-    # exit game condition
-    if game_over:
-        print(f"\nИгра окончена. Победил игрок '{current_player.name}'")
-        break
-    # move loop
+    Intro.welcome_print()
+    Intro.rules_print()
+    user_name = Intro.input_user_name()
+    # init users
+    user = User(user_name)
+    ai_bot = AiBot("bot")
+    # start game loop
+    loop(user, ai_bot)
+
+
+def loop(user, ai_bot):
     while True:
-        coordinates = make_a_move(current_player)
-        try:
-            shoot_result = shoot(current_enemy, coordinates)
-            moves.append(f"Ход номер {move_number}: игрок {current_player.name} "
-                         f"походил {coordinates[0]} : {coordinates[1]} --> {shoot_result[2]}")
-            if shoot_result[0]:
-                game_over = True
-                break
-            if shoot_result[1]:
-                current_player, current_enemy = current_enemy, current_player
-            move_number += 1
+        Intro.clear_screen()
+        user.enemy_desk.show(ai_bot.enemy_desk)
+        GameLogger.print_log()
+        # make a move for user
+        if user.make_a_move(ai_bot.enemy_desk):
             break
-        except DuplicationError as ex:
-            print(str(ex))
-            print("Попробуйте ещё раз :)")
+        # make a move for bot
+        if ai_bot.make_a_move(user.enemy_desk):
+            break
+
+
+start()
+
+# def show_desks(self):
+#     between = ' ' * 20
+#     print(f"{self.user_desk.caption}{between}{self.bot_desk.caption}")
+#     print()
+#     table_header = f"    | {' | '.join(map(str, list(range(1, Desk.FIELD_SIZE + 1))))} |"
+#     print(f"{table_header}{between}{table_header}")
+#     hor_sep_line = f"  ---{'----' * Desk.FIELD_SIZE}"
+#     print(f"{hor_sep_line}{between}{hor_sep_line}")
+#     for i in range(Desk.FIELD_SIZE):
+#         map_value = map(
+#             lambda x: x.state.value,
+#             self.user_desk.points[(i * Desk.FIELD_SIZE): (i + 1) * Desk.FIELD_SIZE])
+#         map_value2 = map(
+#             # small cheat ^) -->
+#             # lambda x: "" if x.state == PointType.SHIP else x.state.value,
+#             # big cheat -->
+#             # lambda x: x.state.value, enemy.desk.points[(i * Desk.FIELD_SIZE): (i + 1) * Desk.FIELD_SIZE])
+#             lambda x: " " if x.state == PointType.SHIP else x.state.value,
+#             self.bot_desk.points[(i * Desk.FIELD_SIZE): (i + 1) * Desk.FIELD_SIZE])
+#         print(f"  {i + 1} | {' | '.join(map_value)} |{between}  {i + 1} | {' | '.join(map_value2)} |")
+#         if i < Desk.FIELD_SIZE - 1:
+#             print(f"{hor_sep_line}{between}{hor_sep_line}")
+#     print()

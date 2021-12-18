@@ -1,4 +1,4 @@
-from point_type import PointType
+from project.logic.point_type import PointType
 
 
 class Ship:

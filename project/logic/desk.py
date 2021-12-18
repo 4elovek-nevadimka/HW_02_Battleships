@@ -1,8 +1,10 @@
 from random import randint
 
-from custom_exceptions.infinity_loop_exception import InfinityLoopError
-from point import Point
-from ships import Ships
+from project.custom_exceptions.duplication_exception import DuplicationError
+from project.game_log import GameLogger
+from project.logic.point import Point
+from project.logic.point_type import PointType
+from project.logic.ships import Ships
 
 
 class Desk:
@@ -43,32 +45,44 @@ class Desk:
                 return self.points[(coordinates[0] - 1) * self.FIELD_SIZE + coordinates[1] - 1]
         return None
 
-    def get_first_point(self):
-        counter = 0
-        while True:
-            counter += 1
-            if counter > 100:
-                raise InfinityLoopError("Не удалось найти свободной точки на поле!")
-            point = self.get_random_point()
-            if point.free:
-                if point.is_all_neighbours_free:
-                    return point
+    def shoot(self, shoot_point):
+        miss_shot = False
+        all_ships_destroyed = False
+        point = self.get_point(shoot_point)
+        if point.state == PointType.EMPTY:
+            point.change_state(PointType.MISS)
+            GameLogger.add_shoot_message("Увы, промах!")
+            miss_shot = True
+        elif point.state == PointType.SHIP:
+            point.change_state(PointType.SHOT)
+            if point.ship.destroyed:
+                GameLogger.add_shoot_message("Ура! Корабль уничтожен!")
+                all_ships_destroyed = self.is_all_ships_destroyed()
+            else:
+                GameLogger.add_shoot_message("Попадание! Ходите ещё!")
+        elif point.state == PointType.MISS or point.state == PointType.SHOT:
+            raise DuplicationError()
+        return all_ships_destroyed, miss_shot
 
-    def get_next_point(self, prev_point, hor):
-        if hor:
-            return self.get_point((prev_point.x, prev_point.y + 1))
-        return self.get_point((prev_point.x + 1, prev_point.y))
-
-    def get_all_neighbours(self, point):
-        neighbours = list()
-        for i in range(-1, 2):
-            for j in range(-1, 2):
-                if i == 0 and j == 0:
-                    continue
-                neighbor = self.get_point((point.x - i, point.y - j))
-                if neighbor is not None:
-                    neighbours.append(neighbor)
-        return neighbours
+    def show(self, other):
+        between = ' ' * 20
+        print(f"{other.caption}{between}{self.caption}")
+        print()
+        table_header = f"    | {' | '.join(map(str, list(range(1, Desk.FIELD_SIZE + 1))))} |"
+        print(f"{table_header}{between}{table_header}")
+        hor_sep_line = f"  ---{'----' * Desk.FIELD_SIZE}"
+        print(f"{hor_sep_line}{between}{hor_sep_line}")
+        for i in range(Desk.FIELD_SIZE):
+            map_value = map(
+                lambda x: x.state.value,
+                other.points[(i * Desk.FIELD_SIZE): (i + 1) * Desk.FIELD_SIZE])
+            map_value2 = map(
+                lambda x: " " if x.state == PointType.SHIP else x.state.value,
+                self.points[(i * Desk.FIELD_SIZE): (i + 1) * Desk.FIELD_SIZE])
+            print(f"  {i + 1} | {' | '.join(map_value)} |{between}  {i + 1} | {' | '.join(map_value2)} |")
+            if i < Desk.FIELD_SIZE - 1:
+                print(f"{hor_sep_line}{between}{hor_sep_line}")
+        print()
 
     # def show(self):
     #     print(f"{self.caption}")

@@ -1,4 +1,4 @@
-from point_type import PointType
+from project.logic.point_type import PointType
 
 
 class Point:
@@ -29,7 +29,7 @@ class Point:
     @property
     def neighbours(self):
         if len(self._neighbours) == 0:
-            self._neighbours.extend(self._desk.get_all_neighbours(self))
+            self.get_all_neighbours()
         return self._neighbours
 
     @property
@@ -48,6 +48,15 @@ class Point:
         self._ship = None
         self._free = True
         self._neighbours.clear()
+
+    def get_all_neighbours(self):
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if i == 0 and j == 0:
+                    continue
+                neighbor = self._desk.get_point((self.x - i, self.y - j))
+                if neighbor is not None:
+                    self._neighbours.append(neighbor)
 
     # def __eq__(self, other):
     #     return self.x == other.x and self.y == other.y
